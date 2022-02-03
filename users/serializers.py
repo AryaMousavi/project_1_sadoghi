@@ -1,7 +1,7 @@
 import re
 
 from rest_framework import serializers
-
+from django.contrib.auth import authenticate, login
 from .models import User
 
 
@@ -29,3 +29,39 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         print(validated_data.get('owner'))
         return user
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(max_length=100)
+
+    def validate(self, data):
+        email = data.get('email')
+        password = data.get('password')
+        if email and password:
+            if User.objects.filter(email=email).exists():
+                user = authenticate(self.context.get('request'), email=email, password=password)
+            else:
+                msg = {
+                    'detail': 'email is not registered',
+                    'register': False
+                }
+                raise serializers.ValidationError(msg)
+
+            if not user:
+                msg = {
+                    'detail': 'Unable to log in with provided credentials.', 'register': True}
+                raise serializers.ValidationError(msg, code='authorization')
+
+        else:
+            msg = 'must fill out "email" and "password"'
+            raise serializers.ValidationError(msg)
+
+        data['user'] = user
+        return data
+
+
+
+
+
+

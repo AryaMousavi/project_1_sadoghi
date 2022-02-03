@@ -34,6 +34,11 @@
         data: data,
         success: function (result){
             console.log(result);
+        },
+        statusCode: {
+            200: function (xhr) {
+                document.cookie = `TokenAuthentication=${xhr.token};path=/`
+            }
         }
     })
     })

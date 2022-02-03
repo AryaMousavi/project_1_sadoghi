@@ -26,29 +26,33 @@
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
         crossorigin="anonymous"></script>
 <script>
-    $('form [type=submit]').click(function (e){
+    $('form [type=submit]').click(function (e) {
         e.preventDefault()
         const data = Object.fromEntries(new FormData(document.querySelector('form')))
         console.log(data)
         $.ajax({
-        url: '/register-api/',
-        method: 'post',
-        data: data,
-        success: function (result){
-            console.log(JSON.stringify(result));
-            $.ajax({
-                url: '/login-api/',
-                method: 'post',
-                data: {
-                    'email': result.email,
-                    'password': document.querySelector('form [name=password]').value
+            url: '/register-api/',
+            method: 'post',
+            data: data,
+            statusCode: {
+                200: function (xhr) {
+                    $.ajax({
+                        url: '/login-api/',
+                        method: 'post',
+                        data: {
+                            'email': xhr.email,
+                            'password': document.querySelector('form [name=password]').value
+                        },
+                        success: function (result) {
+                            document.cookie = `TokenAuthentication=${result.token};path=/`
+                            console.log(result);
+                        }
+                    })
                 },
-                success: function (result){
-                    document.cookie = `TokenAuthentication=${result.token};path=/`
-                    console.log(result);
+                201: function (xhr){
+                    console.log(xhr);
                 }
-            })
-        }
-    })
+            }
+        })
     })
 </script>
